@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import exp from 'constants';
 
 class Dollar {
-	public amount:number;
+	private amount:number;
 
 	constructor(amount:number) {
 		this.amount = amount;
@@ -24,15 +24,13 @@ describe('DollarTest', () => {
 			let num:number = 10;
         	let five:Dollar = new Dollar(5);
 			let ten:Dollar = five.times(2);
-			expect(num).toBe(ten.amount);
+			expect(new Dollar(10)).toStrictEqual(ten);
 		});
 
 		it('testMultipication', () => {
 			let five:Dollar = new Dollar(5);
-			let product:Dollar = five.times(2);
-			expect(10).toBe(product.amount);
-			product = five.times(3);
-			expect(15).toBe(product.amount);
+			expect(new Dollar(10)).toStrictEqual(five.times(2));
+			expect(new Dollar(15)).toStrictEqual(five.times(3));
 		});
 
 		it('testEquality', () => {
