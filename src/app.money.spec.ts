@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import exp from 'constants';
 
-abstract class Money {
+class Money {
 	protected amount:number;
 	protected currency:string;
 
@@ -13,7 +13,7 @@ abstract class Money {
 	public equals(object:Object):boolean {
 		let money:Money = object as Money;
 		return this.amount === money.amount && 
-		(this.constructor.name === object.constructor.name);
+		(this.getCurrency() === money.getCurrency());
 	}
 
 	// Dollar Factory method
@@ -26,31 +26,26 @@ abstract class Money {
 		return new Franc(amount, "CHF");
 	}
 
-	// abstract method
-	abstract times(multiplier:number):Money;
+	times(multiplier:number):Money {
+		return new Money(this.amount * multiplier, this.currency);
+	}
 	
 	public getCurrency():string {
 		return this.currency;
 	}
 }
 
+// 아무것도 안 하는 하위 클래스들
 class Dollar extends Money {
 	constructor(amount:number, currency:string) {
 		super(amount, currency);
 	}
-
-	times(multiplier:number):Money {
-		return Money.dollar(this.amount * multiplier);
-	}
 }
 
+// 아무것도 안 하는 하위 클래스들
 class Franc extends Money {
 	constructor(amount:number, currency:string) {
 		super(amount, currency);
-	}
-
-	times(multiplier:number):Money {
-		return Money.franc(this.amount * multiplier);
 	}
 }
 
@@ -59,6 +54,10 @@ describe('MoneyTest', () => {
 	it('testCurrency', () => {
 		expect("USD").toStrictEqual(Money.dollar(1).getCurrency());
 		expect("CHF").toStrictEqual(Money.franc(1).getCurrency());
+	})
+
+	it('testDifferentClass', () => {
+		expect(new Money(10, "CHF").equals(new Franc(10, "CHF"))).toBe(true);
 	})
 
 	// Dollar 테스트
