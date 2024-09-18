@@ -1,37 +1,34 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import exp from 'constants';
 
-class Dollar {
-	private amount:number;
+class Money {
+	protected amount:number;
 
+	public equals(object:Object):boolean {
+		let money:Money = object as Money;
+		return this.amount === money.amount;
+	}
+}
+
+class Dollar extends Money {
 	constructor(amount:number) {
+		super();
 		this.amount = amount;
 	}
 
 	times(multiplier:number):Dollar {
 		return new Dollar(this.amount * multiplier);
 	}
-
-	equals(object:Object):boolean {
-		let dollar:Dollar = object as Dollar;
-		return this.amount == dollar.amount;
-	}
 }
 
-class Franc {
-	private amount:number;
-
+class Franc extends Money {
 	constructor(amount:number) {
+		super();
 		this.amount = amount;
 	}
 
 	times(multiplier:number):Franc {
 		return new Franc(this.amount * multiplier);
-	}
-
-	equals(object:Object):boolean {
-		let franc:Franc = object as Franc;
-		return this.amount == franc.amount;
 	}
 }
 
@@ -60,7 +57,10 @@ describe('DollarTest', () => {
 describe('FrancTest', () => {
 	describe('Franc', () => {
 		it('multiplyfranc', () => {
-
+			let num:number = 10;
+        	let five:Franc = new Franc(5);
+			let ten:Franc = five.times(2);
+			expect(new Franc(10)).toStrictEqual(ten);
 		});
 
 		it('testMultipication', () => {
@@ -70,7 +70,8 @@ describe('FrancTest', () => {
 		});
 
 		it('testEquality', () => {
-
+			expect(new Franc(5).equals(new Franc(5))).toBe(true);
+			expect(new Franc(5).equals(new Franc(6))).toBe(false);
 		});
 	});
 });
