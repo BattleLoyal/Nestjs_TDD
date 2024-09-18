@@ -6,7 +6,8 @@ class Money {
 
 	public equals(object:Object):boolean {
 		let money:Money = object as Money;
-		return this.amount === money.amount;
+		return this.amount === money.amount && 
+		(this.constructor.name === object.constructor.name);
 	}
 }
 
@@ -72,6 +73,7 @@ describe('FrancTest', () => {
 		it('testEquality', () => {
 			expect(new Franc(5).equals(new Franc(5))).toBe(true);
 			expect(new Franc(5).equals(new Franc(6))).toBe(false);
+			expect(new Franc(5).equals(new Dollar(5))).toBe(false);
 		});
 	});
 });
