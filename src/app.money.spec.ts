@@ -3,6 +3,12 @@ import exp from 'constants';
 
 abstract class Money {
 	protected amount:number;
+	protected currency:string;
+
+	constructor(amount:number, currency:string) {
+		this.amount = amount;
+		this.currency = currency;
+	}
 
 	public equals(object:Object):boolean {
 		let money:Money = object as Money;
@@ -12,41 +18,50 @@ abstract class Money {
 
 	// Dollar Factory method
 	static dollar(amount:number):Money {
-		return new Dollar(amount);
+		return new Dollar(amount, "USD");
 	}
 
 	// Franc Factory method
 	static franc(amount:number):Money {
-		return new Franc(amount);
+		return new Franc(amount, "CHF");
 	}
 
 	// abstract method
 	abstract times(multiplier:number):Money;
+	
+	public getCurrency():string {
+		return this.currency;
+	}
 }
 
 class Dollar extends Money {
-	constructor(amount:number) {
-		super();
-		this.amount = amount;
+	constructor(amount:number, currency:string) {
+		super(amount, currency);
 	}
 
 	times(multiplier:number):Money {
-		return new Dollar(this.amount * multiplier);
+		return Money.dollar(this.amount * multiplier);
 	}
 }
 
 class Franc extends Money {
-	constructor(amount:number) {
-		super();
-		this.amount = amount;
+	constructor(amount:number, currency:string) {
+		super(amount, currency);
 	}
 
 	times(multiplier:number):Money {
-		return new Franc(this.amount * multiplier);
+		return Money.franc(this.amount * multiplier);
 	}
 }
 
-describe('DollarTest', () => {
+describe('MoneyTest', () => {
+	// 통화 테스트
+	it('testCurrency', () => {
+		expect("USD").toStrictEqual(Money.dollar(1).getCurrency());
+		expect("CHF").toStrictEqual(Money.franc(1).getCurrency());
+	})
+
+	// Dollar 테스트
 	describe('Dollar', () => {
 		it('multiplydollar', () => {
 			let num:number = 10;
@@ -66,9 +81,8 @@ describe('DollarTest', () => {
 			expect(Money.dollar(5).equals(Money.dollar(6))).toBe(false);
 		});
 	});
-});
 
-describe('FrancTest', () => {
+	// Franc 테스트
 	describe('Franc', () => {
 		it('multiplyfranc', () => {
 			let num:number = 10;
