@@ -2,9 +2,10 @@ import { Test, TestingModule } from '@nestjs/testing';
 import exp from 'constants';
 
 interface Expression {
-	reduce(to:string):Money;
+	reduce(bank:Bank, to:string):Money;	// 환율은 은행에게서..
 }
 
+// 통화
 class Money implements Expression {
 	protected amount:number;
 	protected currency:string;
@@ -49,17 +50,47 @@ class Money implements Expression {
 		return new Sum(this, addend);
 	}
 
-	public reduce(to:string):Money {
-		return this;
+	// 변환
+	public reduce(bank:Bank, to:string):Money {
+		const rate = bank.rate(this.currency, to);
+		console.log('rate는' + rate);
+		return new Money(this.amount / rate, to);
 	}
 }
 
+// 은행
 class Bank {
+	// 환율을 저장할 테이블
+	private rates:Map<Pair, number>;
+
+	constructor () {
+		this.rates = new Map<Pair, number>();
+	}
+
+	public addRate(from:string, to:string, rate:number) {
+		this.rates.set(new Pair(from, to), rate);
+	}
+
 	public reduce(source:Expression, to:string):Money {
-		return source.reduce(to);
+		return source.reduce(this, to);
+	}
+	
+	public rate(from:string, to:string):number {
+		// 같은 통화라면 1로 반환
+		if (from === to) return 1;
+
+		// map에서 일치하는 것이 있으면 환율 리턴
+		for (const [mapKey, value] of this.rates) {
+			if (mapKey.equals(new Pair(from, to))) {
+				return value;
+			}
+		}
+		// 없으면 undefined
+		return undefined;
 	}
 }
 
+// 더하기
 class Sum implements Expression {
 	private augend:Money;	// 덧셈의 첫번째 인자 (1+6의 1)
 	private addend:Money;	// 덧셈의 마지막 인자 (1+6의 6)
@@ -69,14 +100,37 @@ class Sum implements Expression {
 		this.addend = addend;
 	}
 
-	public reduce(to:string):Money {
+	public reduce(bank:Bank, to:string):Money {
 		const amount:number = this.augend.getAmount() + this.addend.getAmount();
 		return new Money(amount, to);
 	}
 }
 
+// 통화 쌍 (프랑, 달러)
+class Pair {
+	private from:string;
+	private to:string;
+
+	constructor(from:string, to:string) {
+		this.from = from;
+		this.to = to;
+	}
+
+	public equals(object:Object):boolean {
+		const pair:Pair = object as Pair;
+		return this.from === pair.from && this.to === pair.to;
+	}
+
+	public hashCode():number {
+		return 0;
+	}
+}
+
 // 테스트
 describe('MoneyTest', () => {
+	// 항상 쓰이는 bank 객체
+	let bank:Bank = new Bank();
+
 	it('환율', () => {
 		expect("USD").toStrictEqual(Money.dollar(1).getCurrency());
 		expect("CHF").toStrictEqual(Money.franc(1).getCurrency());
@@ -116,22 +170,32 @@ describe('MoneyTest', () => {
 		it('간단한 더하기', () => {
 			const five:Money = Money.dollar(5);
 			const sum:Expression = five.plus(five);
-			const bank:Bank = new Bank();
 			const reduced:Money = bank.reduce(sum, 'USD');
 			expect(Money.dollar(10)).toStrictEqual(reduced);
 		});
 
 		it('reduce(sum)테스트', () => {
 			const sum:Expression = new Sum(Money.dollar(3), Money.dollar(4));
-			const bank:Bank = new Bank;
 			const result:Money = bank.reduce(sum, "USD");
 			expect(Money.dollar(7)).toStrictEqual(result);
 		});
 
 		it('reduce(money)테스트', () => {
-			const bank:Bank = new Bank();
 			const result:Money = bank.reduce(Money.dollar(1), "USD");
 			expect(Money.dollar(1)).toStrictEqual(result);
+		});
+	});
+
+	// 환전
+	describe('환전 테스트', () => {
+		it('프랑을 달러로 변환', () => {
+			bank.addRate("CHF", "USD", 2);
+			const result:Money = bank.reduce(Money.franc(2), "USD");
+			expect(Money.dollar(1)).toStrictEqual(result);
+		});
+
+		it('달러를 달러로 변환할 때의 환율', () => {
+			expect(1).toStrictEqual(bank.rate("USD", "USD"));
 		});
 	});
 });
