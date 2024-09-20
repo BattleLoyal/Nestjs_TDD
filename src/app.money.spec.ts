@@ -1,7 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import exp from 'constants';
 
-class Money {
+interface Expression {
+
+}
+
+class Money implements Expression {
 	protected amount:number;
 	protected currency:string;
 
@@ -33,56 +37,57 @@ class Money {
 	public getCurrency():string {
 		return this.currency;
 	}
+
+	public plus(added:Money):Expression {
+		return new Money(this.amount + added.amount, this.currency);
+	}
+}
+
+class Bank {
+	public reduce(source:Expression, to:string):Money {
+		return Money.dollar(10);
+	}
 }
 
 describe('MoneyTest', () => {
 	// 통화 테스트
-	it('testCurrency', () => {
+	it('환율', () => {
 		expect("USD").toStrictEqual(Money.dollar(1).getCurrency());
 		expect("CHF").toStrictEqual(Money.franc(1).getCurrency());
-	})
+	});
 
-	it('testDifferentClass', () => {
-		expect(new Money(10, "CHF").equals(Money.franc(10))).toBe(true);
-	})
+	// 더하기 테스트
+	it('간단한 더하기', () => {
+		const five:Money = Money.dollar(5);
+		const sum:Expression = five.plus(five);
+		const bank:Bank = new Bank();
+		const reduced:Money = bank.reduce(sum, 'USD');
+		expect(Money.dollar(10)).toStrictEqual(reduced);
+	});
 
 	// Dollar 테스트
-	describe('Dollar', () => {
-		it('multiplydollar', () => {
-			let num:number = 10;
-        	let five:Money = Money.dollar(5);
-			let ten:Money = five.times(2);
-			expect(Money.dollar(10)).toStrictEqual(ten);
-		});
-
-		it('testMultipication', () => {
+	describe('달러', () => {
+		it('달러 곱하기', () => {
 			let five:Money = Money.dollar(5);
 			expect(Money.dollar(10)).toStrictEqual(five.times(2));
 			expect(Money.dollar(15)).toStrictEqual(five.times(3));
 		});
 
-		it('testEquality', () => {
+		it('equals함수 테스트', () => {
 			expect(Money.dollar(5).equals(Money.dollar(5))).toBe(true);
 			expect(Money.dollar(5).equals(Money.dollar(6))).toBe(false);
 		});
 	});
 
 	// Franc 테스트
-	describe('Franc', () => {
-		it('multiplyfranc', () => {
-			let num:number = 10;
-        	let five:Money = Money.franc(5);
-			let ten:Money = five.times(2);
-			expect(Money.franc(10)).toStrictEqual(ten);
-		});
-
-		it('testMultipication', () => {
+	describe('프랑', () => {
+		it('프랑 곱하기', () => {
 			let five:Money = Money.franc(5);
 			expect(Money.franc(10)).toStrictEqual(five.times(2));
 			expect(Money.franc(15)).toStrictEqual(five.times(3));
 		});
 
-		it('testEquality', () => {
+		it('equals함수 테스트', () => {
 			expect(Money.franc(5).equals(Money.franc(5))).toBe(true);
 			expect(Money.franc(5).equals(Money.franc(6))).toBe(false);
 			expect(Money.franc(5).equals(Money.dollar(5))).toBe(false);
