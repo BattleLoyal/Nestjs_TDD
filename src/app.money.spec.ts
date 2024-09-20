@@ -17,7 +17,7 @@ class Money implements Expression {
 		this.currency = currency;
 	}
 
-	// 금액과 통화가 일치하는가
+	// 금액,통화단위가 전부 일치하는가
 	public equals(object:Object):boolean {
 		let money:Money = object as Money;
 		return this.amount === money.amount && 
@@ -57,7 +57,6 @@ class Money implements Expression {
 	// 통화 변경
 	public reduce(bank:Bank, to:string):Money {
 		const rate = bank.rate(this.currency, to);
-		console.log('rate는' + rate);
 		return new Money(this.amount / rate, to);
 	}
 }
@@ -119,8 +118,8 @@ class Bank {
 
 // 통화 쌍 (프랑, 달러)
 class Pair {
-	private from:string;
-	private to:string;
+	private from:string;	// 기존 통화
+	private to:string;		// 변경할 통화
 
 	constructor(from:string, to:string) {
 		this.from = from;
@@ -209,8 +208,6 @@ describe('MoneyTest', () => {
 		});
 
 		// 이미 합친 통화에 또 더하기
-		
-		// 서로 다른 통화 더하기
 		it('10프랑+5달러를 합하고 다시 5달러 합치기', () => {
 			const fiveBucks:Expression = Money.dollar(5);
 			const tenFrancs:Expression = Money.franc(10);
