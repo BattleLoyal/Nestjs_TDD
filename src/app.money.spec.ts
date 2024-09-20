@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import exp from 'constants';
 
 interface Expression {
-
+	reduce(to:string):Money;
 }
 
 class Money implements Expression {
@@ -30,39 +30,56 @@ class Money implements Expression {
 		return new Money(amount, "CHF");
 	}
 
-	times(multiplier:number):Money {
-		return new Money(this.amount * multiplier, this.currency);
-	}
-	
+	// 통화 가져오기
 	public getCurrency():string {
 		return this.currency;
 	}
+	// 금액 가져오기
+	public getAmount():number {
+		return this.amount;
+	}
 
-	public plus(added:Money):Expression {
-		return new Money(this.amount + added.amount, this.currency);
+	// 곱하기
+	public times(multiplier:number):Money {
+		return new Money(this.amount * multiplier, this.currency);
+	}
+
+	// 더하기, addend:더하는 인자
+	public plus(addend:Money):Expression {
+		return new Sum(this, addend);
+	}
+
+	public reduce(to:string):Money {
+		return this;
 	}
 }
 
 class Bank {
 	public reduce(source:Expression, to:string):Money {
-		return Money.dollar(10);
+		return source.reduce(to);
 	}
 }
 
+class Sum implements Expression {
+	private augend:Money;	// 덧셈의 첫번째 인자 (1+6의 1)
+	private addend:Money;	// 덧셈의 마지막 인자 (1+6의 6)
+
+	constructor(augend:Money, addend:Money) {
+		this.augend = augend;
+		this.addend = addend;
+	}
+
+	public reduce(to:string):Money {
+		const amount:number = this.augend.getAmount() + this.addend.getAmount();
+		return new Money(amount, to);
+	}
+}
+
+// 테스트
 describe('MoneyTest', () => {
-	// 통화 테스트
 	it('환율', () => {
 		expect("USD").toStrictEqual(Money.dollar(1).getCurrency());
 		expect("CHF").toStrictEqual(Money.franc(1).getCurrency());
-	});
-
-	// 더하기 테스트
-	it('간단한 더하기', () => {
-		const five:Money = Money.dollar(5);
-		const sum:Expression = five.plus(five);
-		const bank:Bank = new Bank();
-		const reduced:Money = bank.reduce(sum, 'USD');
-		expect(Money.dollar(10)).toStrictEqual(reduced);
 	});
 
 	// Dollar 테스트
@@ -91,6 +108,30 @@ describe('MoneyTest', () => {
 			expect(Money.franc(5).equals(Money.franc(5))).toBe(true);
 			expect(Money.franc(5).equals(Money.franc(6))).toBe(false);
 			expect(Money.franc(5).equals(Money.dollar(5))).toBe(false);
+		});
+	});
+
+	// 더하기
+	describe('더하기 테스트', () => {
+		it('간단한 더하기', () => {
+			const five:Money = Money.dollar(5);
+			const sum:Expression = five.plus(five);
+			const bank:Bank = new Bank();
+			const reduced:Money = bank.reduce(sum, 'USD');
+			expect(Money.dollar(10)).toStrictEqual(reduced);
+		});
+
+		it('reduce(sum)테스트', () => {
+			const sum:Expression = new Sum(Money.dollar(3), Money.dollar(4));
+			const bank:Bank = new Bank;
+			const result:Money = bank.reduce(sum, "USD");
+			expect(Money.dollar(7)).toStrictEqual(result);
+		});
+
+		it('reduce(money)테스트', () => {
+			const bank:Bank = new Bank();
+			const result:Money = bank.reduce(Money.dollar(1), "USD");
+			expect(Money.dollar(1)).toStrictEqual(result);
 		});
 	});
 });
