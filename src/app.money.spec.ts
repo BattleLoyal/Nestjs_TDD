@@ -18,12 +18,12 @@ class Money {
 
 	// Dollar Factory method
 	static dollar(amount:number):Money {
-		return new Dollar(amount, "USD");
+		return new Money(amount, "USD");
 	}
 
 	// Franc Factory method
 	static franc(amount:number):Money {
-		return new Franc(amount, "CHF");
+		return new Money(amount, "CHF");
 	}
 
 	times(multiplier:number):Money {
@@ -35,20 +35,6 @@ class Money {
 	}
 }
 
-// 아무것도 안 하는 하위 클래스들
-class Dollar extends Money {
-	constructor(amount:number, currency:string) {
-		super(amount, currency);
-	}
-}
-
-// 아무것도 안 하는 하위 클래스들
-class Franc extends Money {
-	constructor(amount:number, currency:string) {
-		super(amount, currency);
-	}
-}
-
 describe('MoneyTest', () => {
 	// 통화 테스트
 	it('testCurrency', () => {
@@ -57,15 +43,15 @@ describe('MoneyTest', () => {
 	})
 
 	it('testDifferentClass', () => {
-		expect(new Money(10, "CHF").equals(new Franc(10, "CHF"))).toBe(true);
+		expect(new Money(10, "CHF").equals(Money.franc(10))).toBe(true);
 	})
 
 	// Dollar 테스트
 	describe('Dollar', () => {
 		it('multiplydollar', () => {
 			let num:number = 10;
-        	let five:Dollar = Money.dollar(5);
-			let ten:Dollar = five.times(2);
+        	let five:Money = Money.dollar(5);
+			let ten:Money = five.times(2);
 			expect(Money.dollar(10)).toStrictEqual(ten);
 		});
 
@@ -85,13 +71,13 @@ describe('MoneyTest', () => {
 	describe('Franc', () => {
 		it('multiplyfranc', () => {
 			let num:number = 10;
-        	let five:Franc = Money.franc(5);
-			let ten:Franc = five.times(2);
+        	let five:Money = Money.franc(5);
+			let ten:Money = five.times(2);
 			expect(Money.franc(10)).toStrictEqual(ten);
 		});
 
 		it('testMultipication', () => {
-			let five:Franc = Money.franc(5);
+			let five:Money = Money.franc(5);
 			expect(Money.franc(10)).toStrictEqual(five.times(2));
 			expect(Money.franc(15)).toStrictEqual(five.times(3));
 		});
